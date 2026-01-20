@@ -24,7 +24,7 @@
             </h2>
         </div>
 
-        <button class="text-[#FFFFF0] text-xl px-4 py-2 bg-[#4CAF50] rounded-2xl hidden lg:inline-block">
+        <a class="text-[#FFFFF0] text-xl px-4 py-2 bg-[#4CAF50] rounded-2xl hidden lg:inline-block" href="{{ route('exportCsv') }}">
             <div class="flex items-center gap-3">
                 <svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -33,7 +33,7 @@
                 </svg>
                 <h1>Export</h1>
             </div>
-        </button>
+        </a>
     </section>
 
     <section class="lg:mt-10 mt-7 grid grid-cols-1 lg:grid-cols-3 gap-5 text-[#979797]">
