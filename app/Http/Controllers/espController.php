@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\espStoreRequest;
 use App\Models\Power;
 use App\Models\Submersible;
+use App\Models\SubmersibleConfig;
 use App\Models\SubmersibleLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -79,10 +80,15 @@ class espController extends Controller
 
         $save = Submersible::create($validated);
 
+        $active_status = SubmersibleConfig::where('id', 1)->first();
+
         return response()->json([
             "status" => "Success",
             "message" => "Data berhasil disimpan",
-            "data" => $save,
+            "data" => [
+                "active_status" => $active_status->active_button,
+                "data tersimpan" => $save
+            ],
         ]);
     }
 

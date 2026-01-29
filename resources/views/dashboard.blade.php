@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
-    @vite('resources/css/app.css')
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- @vite('resources/css/app.css') -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -36,7 +36,22 @@
         </a>
     </section>
 
-    <section class="lg:mt-10 mt-7 grid grid-cols-1 lg:grid-cols-3 gap-5 text-[#979797]">
+    <section class="my-7 py-5 px-8 rounded-2xl bg-[url('/assets/horizontal-bar.png')] bg-cover">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-5">
+                <img src="{{ asset('assets/logo/logo-air.webp') }}" alt="Logo" class="h-13 w-11">
+                <div>
+                    <h1 class="text-xl">{{ $latest->active_message_title }}</h1>
+                    <p class="text-gray-500">{{ $latest->active_message_subtitle }}</p>
+                </div>
+            </div>
+            <a class="text-lg px-4 py-2 bg-[#FFFFF0] text-[#10A7E8] rounded-2xl hidden lg:inline-block" href="{{ route('pumpActivation') }}">
+                <h1>{{ $latest->active_message_button }}</h1>
+            </a>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5 text-[#979797]">
         <div class="bg-[#FFFFF0] rounded-[20px] p-10">
             <div class="block lg:flex items-center justify-between mb-6 text-gray-800">
                 <div class="flex items-center gap-4 text-xl">

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Submersible;
+use App\Models\SubmersibleConfig;
 use App\Models\SubmersibleLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class dashboardController extends Controller
 {
@@ -49,6 +51,19 @@ class dashboardController extends Controller
         ];
 
         $latest->status_message = $status_message[$latest->online_status];
+
+        $active_status = SubmersibleConfig::select("id", "active_button")->first();
+        $latest->active_status = $active_status->active_button;
+
+        if ($active_status->active_button == 0) {
+            $latest->active_message_button = "Nyalakan Pompa";
+            $latest->active_message_title = "Pompa sedang mati";
+            $latest->active_message_subtitle = "Tekan tombol untuk menyalakan pompa";
+        } else {
+            $latest->active_message_button = "Matikan Pompa";
+            $latest->active_message_title = "Pompa sedang aktif";
+            $latest->active_message_subtitle = "Tekan tombol untuk mematikan pompa";
+        }
 
         return $latest;
     }
@@ -137,5 +152,13 @@ class dashboardController extends Controller
         return response()->json([
             "data" => $heatmapData
         ]);
+    }
+
+    public function pumpActive()
+    {
+        $update = SubmersibleConfig::where('id', 1)
+            ->update(['active_button' => DB::raw('NOT active_button')]);
+
+        return redirect()->back();
     }
 }
