@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- @vite('resources/css/app.css') -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
+    @vite('resources/css/app.css')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>CES - Living Lab</title>
     <!-- <link rel="icon" type="image/png" href="{{ asset(`assets/logo/ces-logo.png`) }}"> -->
@@ -103,7 +103,7 @@
         </a>
     </section>
 
-    <section class="my-7 py-5 px-6 lg:px-8 rounded-2xl bg-[url('/assets/horizontal-bar.png')] bg-cover">
+    <section class="my-7 py-5 px-6 lg:px-8 rounded-2xl bg-[url('/public/assets/horizontal-bar.png')] bg-cover">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
             <div class="flex items-center gap-4 lg:gap-5">
