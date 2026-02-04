@@ -80,10 +80,10 @@
             </button>
             <div>
                 <div class="flex items-center gap-4">
-                    <img src="{{ asset('assets/logo/ces-logo.png') }}" alt="Logo" class="w-12 h-13">
+                    <img src="{{ asset('assets/logo/ces-logo.png') }}" alt="Logo" class="w-12 h-13 hidden lg:block">
                     <div>
-                        <h1 class="text-2xl">Dashboard Monitoring <span class="hidden lg:inline-block">Pompa Submersible Masaran, Sragen</span></h1>
-                        <h2 class="text-sm text-gray-500 inline-block lg:hidden">Pemantauan operasional pompa Sragen-1</h2>
+                        <h1 class="text-2xl">Dashboard Monitoring <span class="hidden lg:inline-block">Lab Scale</span></h1>
+                        <h2 class="text-sm text-gray-500 inline-block lg:hidden">Pemantauan operasional pompa</h2>
                         <h2 class="text-lg text-gray-500 hidden lg:inline-block">Pantau status operasional, debit air, dan konsumsi daya pompa air secara akurat.
                     </div>
                 </div>
@@ -91,7 +91,7 @@
             </div>
         </div>
 
-        <a class="text-[#FFFFF0] text-xl px-4 py-2 bg-[#4CAF50] rounded-2xl hidden lg:inline-block" href="{{ route('exportCsv', 'living-lab') }}">
+        <a class="text-[#FFFFF0] text-xl px-4 py-2 bg-[#4CAF50] rounded-2xl hidden lg:inline-block" href="{{ route('exportCsv', 'lab-scale') }}">
             <div class="flex items-center gap-3">
                 <svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -128,41 +128,8 @@
         </div>
     </section>
 
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5 text-[#979797]">
-        <div class="bg-[#FFFFF0] rounded-[20px] p-10">
-            <div class="block lg:flex items-center justify-between mb-6 text-gray-800">
-                <div class="flex items-center gap-4 text-xl">
-                    <div class="p-3 bg-[#62A19E] rounded-full">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M4.08325 15.9576C4.08325 11.0763 8.25992 6.25214 11.1929 3.46731C11.9462 2.73965 12.9526 2.33295 13.9999 2.33295C15.0472 2.33295 16.0537 2.73965 16.8069 3.46731C19.7388 6.25331 23.9166 11.0763 23.9166 15.9576C23.9166 20.7433 20.1611 25.6666 13.9999 25.6666C7.83875 25.6666 4.08325 20.7433 4.08325 15.9576Z"
-                                stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path
-                                d="M4.6665 14.3313C6.37567 13.8016 9.7905 13.6313 13.9812 15.9856C18.1648 18.3353 21.6018 17.4976 23.3332 16.4908"
-                                stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-
-                    </div>
-                    <h1>Volume Air <br> yang Dipompa</h1>
-                </div>
-                <h1 class="text-xl mx-auto w-fit mt-4 lg:mt-0 lg:mx-0"><span id="volume_harian" class="text-4xl">{{ $latest->volume_harian }} </span>L</h1>
-            </div>
-            <hr class="my-4">
-            <div class="flex justify-between">
-                <h1>Debit air</h1>
-                <h1><span id="debit">{{ $latest->debit }}</span> L/min</h1>
-            </div>
-            <div class="flex justify-between">
-                <h1>Kecepatan aliran</h1>
-                <h1><span id="v_water">{{ number_format($latest->v_water, 2) }}</span> km/j</h1>
-            </div>
-            <div class="flex justify-between">
-                <h1>Status operasional</h1>
-                <h1><span id="status">{{ $latest->status }}</span></h1>
-            </div>
-        </div>
-
-        <div class="bg-[#FFFFF0] rounded-[20px] p-10">
+    <section class="grid grid-cols-1 lg:grid-cols-6 gap-5 text-[#979797]">
+        <div class="bg-[#FFFFF0] rounded-[20px] p-10 col-span-3">
             <div class="block lg:flex items-center justify-between mb-6 text-gray-800">
                 <div class="flex items-center gap-4 text-xl">
                     <div class="p-3 bg-[#62A19E] rounded-full">
@@ -193,7 +160,7 @@
             </div>
         </div>
 
-        <div class="bg-[#FFFFF0] rounded-[20px] p-10">
+        <div class="bg-[#FFFFF0] rounded-[20px] p-10 col-span-3">
             <div class="block lg:flex items-center justify-between mb-6 text-gray-800">
                 <div class="flex items-center gap-4 text-xl">
                     <div class="p-3 bg-[#62A19E] rounded-full">
@@ -222,7 +189,7 @@
             </div>
         </div>
 
-        <div class="bg-[#FFFFF0] rounded-[20px] p-11 lg:col-span-2 text-gray-900">
+        <div class="bg-[#FFFFF0] rounded-[20px] p-11 col-span-2 lg:col-span-4 text-gray-900">
             <div class="flex items-center justify-between mb-8 lg:ml-5">
                 <div class="flex items-center justify-between">
                     <div class="flex gap-4 items-center">
@@ -256,19 +223,6 @@
                                     <li>
                                         <div class="flex p-2 rounded-sm hover:bg-gray-100">
                                             <div class="flex items-center h-5">
-                                                <input id="helper-radio-2" type="radio" name="mode" value="pump" class="w-4 h-4 text-gray-800 bg-[#FFFFF0] border-gray-300">
-                                            </div>
-                                            <div class="ms-2 text-sm">
-                                                <label for="helper-radio-2" class="font-medium text-gray-900 cursor-pointer">
-                                                    <div>Operasional Pompa</div>
-                                                    <p class="text-xs font-normal text-gray-500">Debit dan volume air yang dipompa</p>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="flex p-2 rounded-sm hover:bg-gray-100">
-                                            <div class="flex items-center h-5">
                                                 <input id="helper-radio-3" type="radio" name="mode" value="environment" class="w-4 h-4 text-gray-800 bg-[#FFFFF0] border-gray-300">
                                             </div>
                                             <div class="ms-2 text-sm">
@@ -290,7 +244,7 @@
             </div>
         </div>
 
-        <div class="bg-[#FFFFF0] rounded-[20px] p-10">
+        <div class="bg-[#FFFFF0] rounded-[20px] p-10 col-span-2">
             <div class="flex items-center gap-4 text-xl">
                 <div class="p-3 bg-[#62A19E] rounded-full">
                     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="white" class="bi bi-asterisk"
@@ -312,8 +266,6 @@
                 <div class="w-full">
                     <h1 class="text-gray-900 text-xl lg:text-base">{{ \Carbon\Carbon::parse($log->date)->translatedFormat('d F Y') }}</h1>
                     <div class=" items-center justify-between hidden lg:flex">
-                        <h1>{{ $log->volume_harian }} L</h1>
-                        <h1>•</h1>
                         <h1>{{ $log->durasi_harian ?? 0 }} menit</h1>
                         <h1>•</h1>
                         <h1>{{ $log->energi_harian }} kWh</h1>
@@ -321,8 +273,6 @@
                 </div>
             </div>
             <div class="flex items-center justify-between lg:hidden mt-3">
-                <h1>{{ $log->volume_harian }} L</h1>
-                <h1>•</h1>
                 <h1>{{ $log->durasi_harian ?? 0 }} menit</h1>
                 <h1>•</h1>
                 <h1>{{ $log->energi_harian }} kWh</h1>
@@ -332,7 +282,7 @@
 
         </div>
 
-        <div class="bg-[#FFFFF0] rounded-[20px] p-10">
+        <div class="bg-[#FFFFF0] rounded-[20px] p-10 col-span-2">
             <div class="flex items-center gap-4 text-xl">
                 <div class="p-3 bg-[#62A19E] rounded-full">
                     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="white"
@@ -354,10 +304,10 @@
                     <span class="text-xl text-gray-900">Lux</span>
                 </div>
             </div>
-            <h1 class="text-center mt-4">Intensitas cahaya saat ini senilai <span id="intensitas_cahaya_text">{{ $latest->intensitas_cahaya }}</span> lux,<br>cukup baik untuk menyalakan pompa</h1>
+            <h1 class="text-center mt-4">Intensitas cahaya saat ini senilai <span id="intensitas_cahaya_text">{{ $latest->intensitas_cahaya }}</span> lux,<br class="hidden lg:block">cukup baik untuk menyalakan pompa</h1>
         </div>
 
-        <div class="bg-[#FFFFF0] rounded-[20px] p-10">
+        <div class="bg-[#FFFFF0] rounded-[20px] p-10 col-span-2">
             <div class="block lg:flex items-center justify-between mb-6 text-gray-800">
                 <div class="flex items-center gap-4 text-xl">
                     <div class="p-3 bg-[#62A19E] rounded-full">
@@ -399,7 +349,7 @@
 
         </div>
 
-        <div class="bg-[#FFFFF0] rounded-[20px] p-10">
+        <div class="bg-[#FFFFF0] rounded-[20px] p-10 col-span-2">
             <div class="flex items-center gap-4 text-xl">
                 <div class="p-3 bg-[#62A19E] rounded-full">
                     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -434,7 +384,7 @@
             </div>
         </div>
 
-        <div class="bg-[#FFFFF0] rounded-[20px] p-10">
+        <div class="bg-[#FFFFF0] rounded-[20px] p-10 col-span-2">
             <div class="flex items-center gap-4 text-xl">
                 <div class="p-3 bg-[#62A19E] rounded-full">
                     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="white" class="bi bi-asterisk"
@@ -449,7 +399,7 @@
                 </div>
             </div>
 
-            <h1 class="text-5xl text-gray-900 my-10 text-center"> {{ number_format($latest->volume_total/1000, 2) }} <span class="text-3xl">m³</span></h1>
+            <h1 class="text-5xl text-gray-900 my-10 text-center"> {{ number_format($latest->energi_total/1000, 2) }} <span class="text-3xl">kWh</span></h1>
 
             <hr class="my-3">
             <div class="flex justify-between">
@@ -503,7 +453,7 @@
             </div>
             <hr class="my-3">
         </div>
-        <div class="lg:col-span-2 bg-[#FFFFF0] rounded-[20px] p-10">
+        <div class="col-span-2 lg:col-span-4 bg-[#FFFFF0] rounded-[20px] p-10">
             <div class="flex items-center gap-5 mb-5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="black" class="bi bi-geo-alt-fill"
                     viewBox="0 0 16 16">
@@ -512,7 +462,7 @@
                 <h1 class="text-gray-900 text-2xl">Lokasi Pompa</h1>
             </div>
             <div class="w-full">
-                <iframe id="maps" src="https://www.google.com/maps?q=-7.4903813,110.9074568&z=15&output=embed" width="100%"
+                <iframe id="maps" src="https://www.google.com/maps?q=-7.5620363,110.8541449&z=15&output=embed" width="100%"
                     height="350" style="border:0;" allowfullscreen="" loading="lazy"
                     referrerpolicy="no-referrer-when-downgrade">
                 </iframe>
@@ -598,7 +548,7 @@
 
     function updateDashboard() {
         // Ganti URL ini dengan endpoint API Anda
-        const apiUrl = '/dashboard/data';
+        const apiUrl = '/dashboard/lab/data';
 
         fetch(apiUrl)
             .then(response => response.json())
@@ -609,10 +559,7 @@
                 document.getElementById('active_message_title').textContent = data.active_message_title;
                 document.getElementById('active_message_subtitle').textContent = data.active_message_subtitle;
                 document.getElementById('active_message_button').textContent = data.active_message_button;
-                document.getElementById('volume_harian').textContent = data.volume_harian;
-                document.getElementById('debit').textContent = data.debit;
-                document.getElementById('v_water').textContent = data.v_water.toFixed(2);
-                document.getElementById('status').textContent = data.status;
+                // document.getElementById('status').textContent = data.status;
                 document.getElementById('daya').textContent = data.daya;
                 document.getElementById('tegangan').textContent = data.tegangan;
                 document.getElementById('arus').textContent = data.arus.toFixed(2);
@@ -621,7 +568,6 @@
                 document.getElementById('biaya').textContent = data.biaya.toFixed(2);
                 document.getElementById('emisi').textContent = data.emisi.toFixed(2);
                 document.getElementById('durasi_pemakaian_harian').textContent = data.durasi_pemakaian_harian;
-                document.getElementById('debit').textContent = data.debit;
                 document.getElementById('intensitas_cahaya').textContent = (data.intensitas_cahaya / 1000).toFixed(1);
                 document.getElementById('intensitas_cahaya_text').textContent = data.intensitas_cahaya;
                 document.getElementById('suhu').textContent = data.suhu;
@@ -794,7 +740,7 @@
     // Fetch data dari API
     async function fetchHeatmapData() {
         try {
-            const response = await fetch('/dashboard/heatMap'); // Ganti dengan URL API Anda
+            const response = await fetch('/dashboard/lab/heatMap'); // Ganti dengan URL API Anda
             const result = await response.json();
 
             // Transform data dari API ke format yang dibutuhkan
@@ -899,21 +845,6 @@
             ],
             yAxisLabel: 'Daya dan Energi'
         },
-        pump: {
-            title: 'Operasional Pompa',
-            datasets: [{
-                    key: 'debit',
-                    label: 'Debit (L/min)',
-                    color: '#03D076'
-                },
-                {
-                    key: 'volume_harian',
-                    label: 'Volume (L)',
-                    color: '#FFC42E'
-                }
-            ],
-            yAxisLabel: 'Debit dan Volume'
-        },
         environment: {
             title: 'Kondisi Lingkungan',
             datasets: [{
@@ -946,7 +877,7 @@
     // Fungsi untuk load data dari API
     async function loadChartData(mode) {
         try {
-            const response = await fetch(`/dashboard/chart/${mode}`);
+            const response = await fetch(`/dashboard/lab/chart/${mode}`);
             const result = await response.json();
 
             if (!result.data || result.data.length === 0) {

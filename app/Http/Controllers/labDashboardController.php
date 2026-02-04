@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LabSubmersible;
+use App\Models\LabSubmersibleLog;
 use App\Models\Submersible;
 use App\Models\SubmersibleConfig;
 use App\Models\SubmersibleLog;
@@ -9,13 +11,13 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class dashboardController extends Controller
+class labDashboardController extends Controller
 {
     //
     function getLatestData()
     {
-        $latest = Submersible::latest()->first();
-        $max_power = Submersible::todayMax($latest->created_at, 'daya');
+        $latest = LabSubmersible::latest()->first();
+        $max_power = LabSubmersible::todayMax($latest->created_at, 'daya');
 
         $latest->v_water = 0.0132 * $latest->debit;
         if ($latest->arus > 0) {
@@ -52,7 +54,7 @@ class dashboardController extends Controller
 
         $latest->status_message = $status_message[$latest->online_status];
 
-        $active_status = SubmersibleConfig::select("id", "active_button")->first();
+        $active_status = SubmersibleConfig::select("id", "active_button")->where('id', 2)->first();
         $latest->active_status = $active_status->active_button;
 
         if ($active_status->active_button == 0) {
@@ -70,7 +72,7 @@ class dashboardController extends Controller
 
     function getLogs()
     {
-        $logs = SubmersibleLog::select('id', 'active', 'date', 'volume_harian', 'energi_harian', 'durasi_pemakaian_harian', 'suhu_harian')
+        $logs = LabSubmersibleLog::select('id', 'active', 'date', 'energi_harian', 'durasi_pemakaian_harian', 'suhu_harian')
             ->where('active', 1)->latest()->limit(7)->get();
 
         return $logs;
@@ -84,7 +86,7 @@ class dashboardController extends Controller
 
         $latest->suhu_mingguan = $logs->avg('suhu_harian');
 
-        return view('dashboard', compact('latest', 'logs'));
+        return view('lab-dashboard', compact('latest', 'logs'));
     }
 
     public function getDashboardData()
@@ -100,14 +102,13 @@ class dashboardController extends Controller
     {
         $data_select = [
             "power" => ["daya", "tegangan", "energi_harian", "created_at"],
-            "pump" => ["volume_harian", "debit", "created_at"],
             "environment" => ["suhu", "intensitas_cahaya", "created_at"]
         ];
 
-        $latestDate = Submersible::max("created_at");
+        $latestDate = LabSubmersible::max("created_at");
         $latestDate = date('Y-m-d', strtotime($latestDate));
 
-        $chart = Submersible::select($data_select[$data])->whereDate("created_at", $latestDate)->get();
+        $chart = LabSubmersible::select($data_select[$data])->whereDate("created_at", $latestDate)->get();
 
         return response()->json([
             "data" => $chart
@@ -117,7 +118,7 @@ class dashboardController extends Controller
     public function heatMapData()
     {
         // Ambil tanggal data terbaru
-        $latestDate = SubmersibleLog::max('date');
+        $latestDate = LabSubmersibleLog::max('date');
 
         // Jika tidak ada data sama sekali, gunakan hari ini
         if (!$latestDate) {
@@ -125,7 +126,7 @@ class dashboardController extends Controller
         }
 
         // Ambil semua data yang mungkin dibutuhkan (16 hari terakhir dari tanggal terbaru)
-        $logs = SubmersibleLog::select("suhu_harian", "date", "created_at")
+        $logs = LabSubmersibleLog::select("suhu_harian", "date", "created_at")
             ->where('date', '<=', $latestDate)
             ->orderBy('date', 'desc')
             ->get()
@@ -161,18 +162,5 @@ class dashboardController extends Controller
         return response()->json([
             "data" => $heatmapData
         ]);
-    }
-
-    public function pumpActive($scale = "living-lab")
-    {
-        if ($scale = "living-lab") {
-            $id = 1;
-        } else {
-            $id = 2;
-        }
-        $update = SubmersibleConfig::where('id', $id)
-            ->update(['active_button' => DB::raw('NOT active_button')]);
-
-        return redirect()->back();
     }
 }

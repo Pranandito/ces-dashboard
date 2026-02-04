@@ -25,8 +25,8 @@ class espStoreRequest extends FormRequest
             'tegangan' => 'required|decimal:2',
             'daya' => 'required|decimal:1',
 
-            'debit' => 'required|decimal:2',
-            'volume' => 'required|decimal:2',
+            'debit' => 'sometimes|required|decimal:2',
+            'volume' => 'sometimes|required|decimal:2',
 
             'suhu' => 'required|decimal:1',
             'intensitas_cahaya' => 'required|integer'

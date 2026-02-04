@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\espStoreRequest;
-use App\Models\Power;
+use App\Models\LabSubmersible;
 use App\Models\Submersible;
 use App\Models\SubmersibleConfig;
 use App\Models\SubmersibleLog;
@@ -81,6 +81,67 @@ class espController extends Controller
         $save = Submersible::create($validated);
 
         $active_status = SubmersibleConfig::where('id', 1)->first();
+
+        return response()->json([
+            "status" => "Success",
+            "message" => "Data berhasil disimpan",
+            "data" => [
+                "active_status" => $active_status->active_button,
+                "data tersimpan" => $save
+            ],
+        ]);
+    }
+
+
+    public function labStore(espStoreRequest $request)
+    {
+        $validated = $request->validated();
+
+        $today = LabSubmersible::getTodayData();
+        $latest = LabSubmersible::getLatestData();
+
+        $today_use = $today?->durasi_pemakaian_harian ?? 0;
+        $total_use = $latest?->durasi_pemakaian_total ?? 0;
+
+        $connection_duration = $today?->durasi_koneksi ?? 0;
+
+        $today_energy = $today?->energi_harian ?? 0;
+        $latest_energy_total = $latest?->energi_total ?? 0;
+
+        if (empty($today)) {
+            $time_diff = 120;
+
+            $validated['suhu_harian'] = $validated['suhu'];
+        } else {
+            $time_diff = $today->created_at->diffInSeconds(Carbon::now());
+            if ($time_diff > 300 || $time_diff == 0) {
+                $time_diff = 120;
+            }
+
+            $today_data_count = LabSubmersible::todayDataCount();
+
+            $validated['suhu_harian'] = $this->calc_new_average($today->suhu_harian, $today_data_count, $validated['suhu']);
+        }
+
+        if ($validated['daya'] > 0) {
+            $validated['durasi_pemakaian_harian'] = $today_use + $time_diff;
+            $validated['durasi_pemakaian_total'] = $total_use + $time_diff;
+        } else {
+            $validated['durasi_pemakaian_harian'] = $today_use;
+            $validated['durasi_pemakaian_total'] = $total_use;
+        }
+
+        $validated['durasi_koneksi'] = $connection_duration + $time_diff;
+
+        $current_energy = $this->calc_power_to_energy($validated['daya'], $time_diff);
+
+        $validated['energi_harian'] = $today_energy + $current_energy;
+        $validated['energi_total'] = $latest_energy_total + $current_energy;
+
+
+        $save = LabSubmersible::create($validated);
+
+        $active_status = SubmersibleConfig::where('id', 2)->first();
 
         return response()->json([
             "status" => "Success",
