@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\envStoreRequest;
 use App\Http\Requests\espStoreRequest;
+use App\Models\Environment;
 use App\Models\LabSubmersible;
 use App\Models\Submersible;
 use App\Models\SubmersibleConfig;
@@ -176,5 +178,37 @@ class espController extends Controller
                 "Message" => "Tidak ada data hari ini",
             ]);
         }
+    }
+
+    public function storeEnv(envStoreRequest $request)
+    {
+        $validated = $request->validated();
+
+        foreach ($validated as $key => $value) {
+            // Cek apakah nilainya integer 0 atau string "0"
+            if ($value === 0 || $value === '0.0') {
+                $validated[$key] = null;
+            }
+        }
+
+        $today = Environment::getTodayData();
+
+        if (empty($today)) {
+            $validated['suhu_harian'] = $validated['suhu'];
+        } else {
+            $today_data_count = Environment::todayDataCount();
+
+            $validated['suhu_harian'] = $this->calc_new_average($today->suhu_harian, $today_data_count, $validated['suhu']);
+        }
+
+        $save = Environment::create($validated);
+
+        return response()->json([
+            "status" => "Success",
+            "message" => "Data berhasil disimpan",
+            "data" => [
+                "data tersimpan" => $save
+            ],
+        ]);
     }
 }
