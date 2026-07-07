@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\envStoreRequest;
 use App\Http\Requests\espStoreRequest;
+use App\Http\Requests\labStoreRequest;
 use App\Models\Environment;
 use App\Models\LabSubmersible;
 use App\Models\Submersible;
@@ -95,7 +96,7 @@ class espController extends Controller
     }
 
 
-    public function labStore(espStoreRequest $request)
+    public function labStore(LabStoreRequest $request)
     {
         $validated = $request->validated();
 

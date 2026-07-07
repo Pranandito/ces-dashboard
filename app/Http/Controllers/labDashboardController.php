@@ -14,58 +14,113 @@ use Illuminate\Support\Facades\DB;
 class labDashboardController extends Controller
 {
     //
-    function getLatestData()
+
+    function calculateExpPower(int $lux, float $suhu, float $daya): array
+    {
+        // Guard: lux negatif tidak masuk akal secara fisik
+        if ($lux < 0) {
+            return [0.0, 0.0, 0];
+        }
+
+        $expPower = 0.04363957125 * $lux * (1.0 - 0.0026 * ($suhu - 25.0));
+
+        // Guard: hasil expPower nol atau negatif → tidak bisa jadi pembagi
+        if ($expPower <= 0) {
+            return [0.0, 0.0, 0];
+        }
+
+        $deviasi = ($daya - $expPower) / $expPower * 100;
+
+        $anomali = (abs($deviasi) < 5 || $daya == 0) ? 0 : 1;
+
+        return [round($expPower, 2), round($deviasi, 4), $anomali];
+    }
+
+    function getLatestData(): mixed
     {
         $latest = LabSubmersible::latest()->first();
-        $max_power = LabSubmersible::todayMax($latest->created_at, 'daya');
 
-        $latest->v_water = 0.0132 * $latest->debit;
-        if ($latest->arus > 0) {
-            $latest->status = "Menyala";
-        } else {
-            $latest->status = "Mati";
+        // Guard: tidak ada data sama sekali di tabel
+        if (!$latest) {
+            return null; // atau throw new \RuntimeException('No sensor data found');
         }
 
-        $latest->arus = $latest->daya / $latest->tegangan;
+        $max_power = LabSubmersible::todayMax($latest->created_at, 'daya') ?? 0;
+
+        // Guard: debit null/negatif
+        $debit = max(0, $latest->debit ?? 0);
+        $latest->v_water = 0.0132 * $debit;
+
+        $latest->status = ($latest->arus ?? 0) > 0 ? "Menyala" : "Mati";
+
+        // Guard: division by zero pada arus = daya / tegangan
+        $tegangan = $latest->tegangan ?? 0;
+        if ($tegangan != 0) {
+            $latest->arus = ($latest->daya ?? 0) / $tegangan;
+        } else {
+            $latest->arus = 0;
+        }
+
         $latest->max_power = $max_power;
-        $latest->biaya = $latest->energi_harian * 1.7; // 1 kWh = rp1700
-        $latest->emisi = $latest->energi_harian * 0.00085; // 1 kWh = 0.85 CO2
 
-        $latest->total_biaya = $latest->energi_total * 1.7; // 1 kWh = rp1700
-        $latest->total_emisi = $latest->energi_total * 0.00085; // 1 kWh = 0.85 CO2
+        $energiHarian = $latest->energi_harian ?? 0;
+        $latest->biaya = $energiHarian * 1.7;
+        $latest->emisi = $energiHarian * 0.00085;
 
-        $latest->durasi_pemakaian_harian = intdiv($latest->durasi_pemakaian_harian, 60);
-        $latest->durasi_pemakaian_total = intdiv($latest->durasi_pemakaian_total, 3600);
+        $energiTotal = $latest->energi_total ?? 0;
+        $latest->total_biaya = $energiTotal * 1.7;
+        $latest->total_emisi = $energiTotal * 0.00085;
 
-        $latest->durasi_koneksi_j = intdiv($latest->durasi_koneksi, 3600);
-        $latest->durasi_koneksi_m = intdiv($latest->durasi_koneksi, 60);
+        // intdiv() akan throw DivisionByZeroError jika divisor 0, tapi 60 dan 3600 adalah konstanta → aman.
+        // Null-safe tetap perlu karena nilai bisa null dari DB.
+        $latest->durasi_pemakaian_harian = intdiv((int)($latest->durasi_pemakaian_harian ?? 0), 60);
+        $latest->durasi_pemakaian_total  = intdiv((int)($latest->durasi_pemakaian_total  ?? 0), 3600);
+        $latest->durasi_koneksi_j        = intdiv((int)($latest->durasi_koneksi          ?? 0), 3600);
+        $latest->durasi_koneksi_m        = intdiv((int)($latest->durasi_koneksi          ?? 0), 60);
 
-        $time_dif = $latest->created_at->diffInSeconds(Carbon::now());
-        if ($time_dif > 300) {
+        // Guard: created_at null → diffInSeconds akan throw
+        if ($latest->created_at) {
+            $timeDif = $latest->created_at->diffInSeconds(Carbon::now());
+            $latest->online_status = $timeDif > 300 ? "Offline" : "Online";
+        } else {
             $latest->online_status = "Offline";
-        } else {
-            $latest->online_status = "Online";
         }
 
-        $status_message = [
+        $statusMessage = [
             "Offline" => "Koneksi perangkat IoT dan server terputus",
-            "Online" => "Perangkat IoT terhubung ke server dengan normal"
+            "Online"  => "Perangkat IoT terhubung ke server dengan normal",
         ];
+        $latest->status_message = $statusMessage[$latest->online_status];
 
-        $latest->status_message = $status_message[$latest->online_status];
+        $activeStatus = SubmersibleConfig::select("id", "active_button")->where('id', 2)->first();
 
-        $active_status = SubmersibleConfig::select("id", "active_button")->where('id', 2)->first();
-        $latest->active_status = $active_status->active_button;
-
-        if ($active_status->active_button == 0) {
-            $latest->active_message_button = "Nyalakan Pompa";
-            $latest->active_message_title = "Pompa sedang dimatikan";
-            $latest->active_message_subtitle = "Tekan tombol untuk menyalakan pompa";
+        // Guard: config row tidak ditemukan
+        if (!$activeStatus) {
+            $latest->active_status            = 0;
+            $latest->active_message_button    = "Nyalakan Pompa";
+            $latest->active_message_title     = "Pompa sedang dimatikan";
+            $latest->active_message_subtitle  = "Tekan tombol untuk menyalakan pompa";
+        } elseif ($activeStatus->active_button == 0) {
+            $latest->active_status            = 0;
+            $latest->active_message_button    = "Nyalakan Pompa";
+            $latest->active_message_title     = "Pompa sedang dimatikan";
+            $latest->active_message_subtitle  = "Tekan tombol untuk menyalakan pompa";
         } else {
-            $latest->active_message_button = "Matikan Pompa";
-            $latest->active_message_title = "Pompa sedang diaktifkan";
-            $latest->active_message_subtitle = "Tekan tombol untuk mematikan pompa";
+            $latest->active_status            = $activeStatus->active_button;
+            $latest->active_message_button    = "Matikan Pompa";
+            $latest->active_message_title     = "Pompa sedang diaktifkan";
+            $latest->active_message_subtitle  = "Tekan tombol untuk mematikan pompa";
         }
+
+        $expPower = $this->calculateExpPower(
+            (int)($latest->intensitas_cahaya ?? 0),
+            (float)($latest->suhu ?? 25.0),  // fallback ke suhu referensi 25°C
+            (float)($latest->daya ?? 0)
+        );
+
+        $latest->pv_estimasi = $expPower[0];
+        $latest->pv_deviasi  = $expPower[1];
+        $latest->pv_anomali  = $expPower[2];
 
         return $latest;
     }

@@ -103,27 +103,112 @@
         </a>
     </section>
 
-    <section class="my-7 py-5 px-6 lg:px-8 rounded-2xl bg-[url('/public/assets/horizontal-bar.png')] bg-cover">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    <section id="horizontal-bar" class="my-7 rounded-2xl bg-[#FFFFF0] overflow-hidden">
 
-            <div class="flex items-center gap-4 lg:gap-5">
-                <img src="{{ asset('assets/logo/logo-air.webp') }}" alt="Logo" class="h-10 w-8 lg:h-13 lg:w-11">
+        {{-- ── BARIS ATAS : Status Pompa ── --}}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-7 lg:px-7 border-b border-slate-100">
 
-                <div class="flex-1">
-                    <h1 id="active_message_title" class="text-lg lg:text-xl leading-tight">
-                        {{ $latest->active_message_title }}
-                    </h1>
-                    <p id="active_message_subtitle" class="text-sm lg:text-base text-gray-500 mt-1">
+            {{-- Kiri: Dot, Judul, Subjudul --}}
+            <div class="flex items-start sm:items-center gap-3 md:gap-4">
+                {{-- Dot Status Pompa --}}
+                <div class="mt-1 sm:mt-0 w-2.5 h-2.5 rounded-full shrink-0 transition-colors duration-300 
+                {{ $latest->status ? 'bg-[#10A7E8] ring-4 ring-[#10A7E8]/20' : 'bg-slate-300 ring-4 ring-slate-300/30' }}">
+                </div>
+
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 id="active_message_title" class="text-sm font-semibold text-slate-800 leading-tight">
+                            {{ $latest->active_message_title }}
+                        </h3>
+                    </div>
+                    <p id="active_message_subtitle" class="text-xs text-slate-500 mt-1">
                         {{ $latest->active_message_subtitle }}
                     </p>
                 </div>
             </div>
 
-            <a id="active_message_button"
-                class="text-center text-md lg:text-lg px-6 py-3 lg:py-2 bg-[#FFFFF0] text-[#10A7E8] rounded-2xl font-medium shadow-sm hover:bg-opacity-90 transition-all"
-                href="{{ route('pumpActivation', 'lab-scale') }}">
+            {{-- Kanan: Tombol --}}
+            <a id="active_message_button" href="{{ route('pumpActivation', ['scale' => 'lab-scale']) }}"
+                class="w-full sm:w-auto text-center shrink-0 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#10A7E8] rounded-lg py-2 px-5 text-sm font-semibold cursor-pointer transition-colors">
                 {{ $latest->active_message_button }}
             </a>
+        </div>
+
+        {{-- ── BARIS BAWAH : Deteksi Anomali PV ── --}}
+        <div class="flex flex-col md:flex-row">
+
+            {{-- Kolom Status Badge (Kiri) --}}
+            <div class="flex items-center gap-3 py-4 px-5 lg:px-6 md:w-48 shrink-0 border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/50">
+                {{-- Dot Anomali/Normal --}}
+                <div class="w-2.5 h-2.5 rounded-full shrink-0 
+                {{ $latest->pv_anomali ? 'bg-[#EF4444] ring-4 ring-[#EF4444]/20 animate-pulse' : 'bg-[#22c55e] ring-4 ring-[#22c55e]/20' }}">
+                </div>
+                {{-- Teks Badge --}}
+                <span class="text-xs font-bold uppercase tracking-widest
+                {{ $latest->pv_anomali ? 'text-[#EF4444]' : 'text-[#22c55e]' }}">
+                    {{ $latest->pv_anomali ? 'Anomali' : 'Normal' }}
+                </span>
+            </div>
+
+            {{-- Kolom Bar & Data (Kanan) --}}
+            <div class="flex-1 py-4 px-5 lg:px-6 flex flex-col justify-center">
+
+                {{-- Judul Bar & Persentase --}}
+                <div class="flex items-center justify-between gap-4 mb-3">
+                    <p class="text-sm font-semibold m-0 truncate {{ $latest->pv_anomali ? 'text-[#EF4444]' : 'text-slate-800' }}">
+                        {{ $latest->pv_anomali ? 'Anomali terdeteksi pada panel surya' : 'Panel surya berfungsi normal' }}
+                    </p>
+                    <span class="text-sm font-bold shrink-0 {{ $latest->pv_anomali ? 'text-[#EF4444]' : 'text-[#22c55e]' }}">
+                        {{ ($latest->pv_deviasi > 0 ? '+' : '') . number_format($latest->pv_deviasi, 1) }}%
+                    </span>
+                </div>
+
+                {{-- Progress Bar (Skala -10% s/d +10%) --}}
+                <div class="h-1.5 bg-slate-200 rounded-full relative mb-1.5">
+                    {{-- Penanda/Ticks --}}
+                    <div class="absolute left-1/2 top-0 bottom-0 w-px bg-slate-400"></div>
+                    <div class="absolute -top-0.5 -bottom-0.5 w-px bg-slate-300" style="left:25%"></div>
+                    <div class="absolute -top-0.5 -bottom-0.5 w-px bg-slate-300" style="left:75%"></div>
+
+                    @php
+                    $deviasi = max(-10, min(10, $latest->pv_deviasi ?? 0));
+                    $width = abs($deviasi) * 5;
+                    $left = $deviasi < 0 ? 50 - $width : 50;
+                        @endphp
+
+                        {{-- Bar Fill Dinamis --}}
+                        <div class="absolute top-0 h-full rounded-full transition-all duration-500 
+                    {{ $latest->pv_anomali ? 'bg-[#EF4444]' : 'bg-[#22c55e]' }}"
+                        style="width: {{ $width }}%; left: {{ $left }}%;">
+                </div>
+            </div>
+
+            {{-- Label Skala Bar --}}
+            <div class="flex justify-between text-[10px] text-slate-400 font-medium mb-4">
+                <span>−10%</span>
+                <span>−5%</span>
+                <span>0</span>
+                <span>+5%</span>
+                <span>+10%</span>
+            </div>
+
+            {{-- Data Detail (Aktual, Estimasi, Threshold) --}}
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
+                <div>
+                    Aktual
+                    <span class="ml-1 font-semibold {{ $latest->pv_anomali ? 'text-[#EF4444]' : 'text-slate-800' }}">
+                        {{ $latest->daya ?? 0 }} W
+                    </span>
+                </div>
+                <div>
+                    Estimasi
+                    <span class="ml-1 font-semibold text-slate-800">{{ $latest->pv_estimasi ?? 0 }} W</span>
+                </div>
+                <div>
+                    Threshold
+                    <span class="ml-1 font-semibold text-slate-800">±5%</span>
+                </div>
+            </div>
 
         </div>
     </section>
@@ -470,55 +555,61 @@
         </div>
     </section>
 
-    <footer class="mt-12 lg:-mx-24 -mx-12 lg:mb-4 bg-[#121212] rounded-2xl text-[#FFFFF0]">
-        <div class="lg:flex block justify-between mx-16 pt-10">
+    <footer class="mt-12 bg-[#121212] rounded-2xl text-[#FFFFF0] -mx-4 mb-2 lg:mb-4 sm:-mx-8 lg:-mx-24">
+        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start
+                gap-6 lg:gap-0
+                px-6 sm:px-10 lg:px-16 pt-9 lg:pt-10
+                text-center lg:text-left items-center lg:items-start">
+
             <div>
-                <div class="flex items-center gap-5">
-                    <img src="{{ asset('assets/logo/ces-logo.png') }}" alt="Logo" class="w-11 h-12">
-                    <h1 class="text-2xl lg:text-4xl"> Dashboard Monitoring</h1>
+                <div class="flex items-center justify-center lg:justify-start gap-4">
+                    <img src="{{ asset('assets/logo/ces-logo.png') }}" alt="Logo" class="w-10 h-11">
+                    <h1 class="text-2xl lg:text-4xl leading-tight">Dashboard Monitoring</h1>
                 </div>
-                <h2 class="text-[#979797] hidden lg:block mt-3 text-lg">Platform pemantauan kinerja operasional <br> pompa air tenaga
-                    surya
-                    sragen
-                </h2>
+                <p class="text-[#979797] mt-3 text-sm lg:text-base leading-relaxed">
+                    Platform pemantauan kinerja operasional<br>
+                    pompa air tenaga surya sragen
+                </p>
             </div>
-            <div class="mt-8 lg:mt-0 lg:text-end text-xl">
-                <h1>Teknik Elektro</h1>
-                <h1>Universitas Sebelas Maret</h1>
-                <div class="flex items-center lg:justify-end mt-3 gap-7">
-                    <a href="https://mail.google.com/mail/u/0/?to=ditopranandito@student.uns.ac.id&fs=1&tf=cm" target="_blank" rel="noopener noreferrer">
-                        <div class="flex items-center gap-3 py-2 px-7 rounded-3xl border border-[#979797]">
-                            <svg width="25" height="25" viewBox="0 0 25 25" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <g clip-path="url(#clip0_3388_220)">
-                                    <path
-                                        d="M22.3863 20.1704H19.7726V8.98435L11.9317 13.7784L4.0908 8.98435V20.1704H1.47716V4.82952H3.04534L11.9317 10.2628L20.8181 4.82952H22.3863M22.3863 2.27271H1.47716C0.0265936 2.27271 -1.13647 3.41049 -1.13647 4.82952V20.1704C-1.13647 20.8485 -0.86111 21.4989 -0.370958 21.9784C0.119194 22.4579 0.783982 22.7273 1.47716 22.7273H22.3863C23.0794 22.7273 23.7442 22.4579 24.2344 21.9784C24.7245 21.4989 24.9999 20.8485 24.9999 20.1704V4.82952C24.9999 4.15141 24.7245 3.50108 24.2344 3.02158C23.7442 2.54208 23.0794 2.27271 22.3863 2.27271Z"
-                                        fill="white" />
-                                </g>
-                                <defs>
-                                    <clipPath id="clip0_3388_220">
-                                        <rect width="25" height="25" fill="white" />
-                                    </clipPath>
-                                </defs>
-                            </svg>
-                            <h1>Email</h1>
-                        </div>
-                    </a>
-                    <a href="https://id.linkedin.com/in/hari-maghfiroh-6271a363" target="_blank" rel="noopener noreferrer">
-                        <div class="flex items-center gap-3 py-2 px-6 rounded-3xl border border-[#979797]">
-                            <svg width="33" height="33" viewBox="0 0 33 33" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M26.0197 4.1084C26.7461 4.1084 27.4427 4.39696 27.9564 4.91061C28.47 5.42425 28.7586 6.1209 28.7586 6.84731V26.0197C28.7586 26.7461 28.47 27.4427 27.9564 27.9564C27.4427 28.47 26.7461 28.7586 26.0197 28.7586H6.84731C6.1209 28.7586 5.42425 28.47 4.91061 27.9564C4.39696 27.4427 4.1084 26.7461 4.1084 26.0197V6.84731C4.1084 6.1209 4.39696 5.42425 4.91061 4.91061C5.42425 4.39696 6.1209 4.1084 6.84731 4.1084H26.0197ZM25.3349 25.3349V18.0768C25.3349 16.8928 24.8646 15.7572 24.0273 14.92C23.1901 14.0828 22.0545 13.6124 20.8705 13.6124C19.7065 13.6124 18.3507 14.3245 17.6934 15.3927V13.8726H13.8726V25.3349H17.6934V18.5835C17.6934 17.529 18.5424 16.6663 19.5969 16.6663C20.1054 16.6663 20.5931 16.8683 20.9526 17.2278C21.3122 17.5874 21.5142 18.075 21.5142 18.5835V25.3349H25.3349ZM9.42188 11.7226C10.0321 11.7226 10.6172 11.4802 11.0487 11.0487C11.4802 10.6172 11.7226 10.0321 11.7226 9.42188C11.7226 8.14829 10.6955 7.1075 9.42188 7.1075C8.80807 7.1075 8.2194 7.35134 7.78537 7.78537C7.35134 8.2194 7.1075 8.80807 7.1075 9.42188C7.1075 10.6955 8.14829 11.7226 9.42188 11.7226ZM11.3254 25.3349V13.8726H7.53203V25.3349H11.3254Z"
+
+            <div class="flex flex-col items-center lg:items-end gap-3">
+                <div>
+                    <h1 class="text-base lg:text-xl leading-relaxed">Teknik Elektro</h1>
+                    <h1 class="text-base lg:text-xl leading-relaxed">Universitas Sebelas Maret</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="https://mail.google.com/mail/u/0/?to=ditopranandito@student.uns.ac.id&fs=1&tf=cm"
+                        target="_blank" rel="noopener noreferrer"
+                        class="flex items-center gap-2 py-2 px-5 rounded-3xl border border-[#979797]
+                          hover:border-white transition-colors duration-200">
+                        <svg width="20" height="20" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_3388_220)">
+                                <path d="M22.3863 20.1704H19.7726V8.98435L11.9317 13.7784L4.0908 8.98435V20.1704H1.47716V4.82952H3.04534L11.9317 10.2628L20.8181 4.82952H22.3863M22.3863 2.27271H1.47716C0.0265936 2.27271 -1.13647 3.41049 -1.13647 4.82952V20.1704C-1.13647 20.8485 -0.86111 21.4989 -0.370958 21.9784C0.119194 22.4579 0.783982 22.7273 1.47716 22.7273H22.3863C23.0794 22.7273 23.7442 22.4579 24.2344 21.9784C24.7245 21.4989 24.9999 20.8485 24.9999 20.1704V4.82952C24.9999 4.15141 24.7245 3.50108 24.2344 3.02158C23.7442 2.54208 23.0794 2.27271 22.3863 2.27271Z"
                                     fill="white" />
-                            </svg>
-                            <h1>LinkedIn</h1>
-                        </div>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_3388_220">
+                                    <rect width="25" height="25" fill="white" />
+                                </clipPath>
+                            </defs>
+                        </svg>
+                        <span class="text-sm lg:text-base">Email</span>
+                    </a>
+                    <a href="https://id.linkedin.com/in/hari-maghfiroh-6271a363"
+                        target="_blank" rel="noopener noreferrer"
+                        class="flex items-center gap-2 py-2 px-5 rounded-3xl border border-[#979797]
+                          hover:border-white transition-colors duration-200">
+                        <svg width="26" height="26" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M26.0197 4.1084C26.7461 4.1084 27.4427 4.39696 27.9564 4.91061C28.47 5.42425 28.7586 6.1209 28.7586 6.84731V26.0197C28.7586 26.7461 28.47 27.4427 27.9564 27.9564C27.4427 28.47 26.7461 28.7586 26.0197 28.7586H6.84731C6.1209 28.7586 5.42425 28.47 4.91061 27.9564C4.39696 27.4427 4.1084 26.7461 4.1084 26.0197V6.84731C4.1084 6.1209 4.39696 5.42425 4.91061 4.91061C5.42425 4.39696 6.1209 4.1084 6.84731 4.1084H26.0197ZM25.3349 25.3349V18.0768C25.3349 16.8928 24.8646 15.7572 24.0273 14.92C23.1901 14.0828 22.0545 13.6124 20.8705 13.6124C19.7065 13.6124 18.3507 14.3245 17.6934 15.3927V13.8726H13.8726V25.3349H17.6934V18.5835C17.6934 17.529 18.5424 16.6663 19.5969 16.6663C20.1054 16.6663 20.5931 16.8683 20.9526 17.2278C21.3122 17.5874 21.5142 18.075 21.5142 18.5835V25.3349H25.3349ZM9.42188 11.7226C10.0321 11.7226 10.6172 11.4802 11.0487 11.0487C11.4802 10.6172 11.7226 10.0321 11.7226 9.42188C11.7226 8.14829 10.6955 7.1075 9.42188 7.1075C8.80807 7.1075 8.2194 7.35134 7.78537 7.78537C7.35134 8.2194 7.1075 8.80807 7.1075 9.42188C7.1075 10.6955 8.14829 11.7226 9.42188 11.7226ZM11.3254 25.3349V13.8726H7.53203V25.3349H11.3254Z"
+                                fill="white" />
+                        </svg>
+                        <span class="text-sm lg:text-base">LinkedIn</span>
                     </a>
                 </div>
             </div>
         </div>
-        <hr class="text-[#979797] mx-8 mt-9 p-5">
+
+        <hr class="border-[#333] mx-6 sm:mx-10 lg:mx-8 mt-8 pb-5">
     </footer>
 
 
@@ -620,9 +711,6 @@
     const ctxg = document.getElementById('gaugeChart').getContext('2d');
 
     const value = document.getElementById('intensitas_cahaya_card').dataset.lux; // Nilai yang ingin ditampilkan
-
-    const maxValue = 65535; // Nilai maksimum
-
     // Plugin untuk membuat gauge chart
     const gaugeChartText = {
         id: 'gaugeChartText',
@@ -632,7 +720,9 @@
     };
 
     // Membuat segments untuk efek terpotong-potong
-    const tickPositions = [0, 26214, 36044, 45874, 55704, 65535]; // Posisi tick marks
+    const maxValue = 65535;
+    // const tickPositions = [0, 66666, 99999, 133333, 166666, 200000]; // Posisi tick marks
+    const tickPositions = [0, maxValue * 0.4, maxValue * 0.55, maxValue * 0.70, maxValue * 0.85, maxValue]; // Posisi tick marks
     const segments = tickPositions.length - 1; // Jumlah segmen antar tick
 
     const dataArray = [];

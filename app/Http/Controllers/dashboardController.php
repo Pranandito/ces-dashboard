@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Environment;
 use App\Models\Submersible;
 use App\Models\SubmersibleConfig;
 use App\Models\SubmersibleLog;
@@ -12,16 +13,30 @@ use Illuminate\Support\Facades\DB;
 class dashboardController extends Controller
 {
     //
+    function calculateExpPower(int $lux, float $suhu, float $daya)
+    {
+        $expPower = 0.04363957125 * $lux * (1.0 - 0.0026 * ($suhu - 25.0));
+        $deviasi = ($daya - $expPower) / $expPower * 100;
+        if (abs($deviasi) < 5 || $daya == 0) {
+            $anomali = 0;
+        } else {
+            $anomali = 1;
+        }
+
+        return [$expPower, $deviasi, $anomali];
+    }
+
     function getLatestData()
     {
         $latest = Submersible::latest()->first();
+        $latest_env = Environment::latest()->first();
         $max_power = Submersible::todayMax($latest->created_at, 'daya');
 
         $latest->v_water = 0.0132 * $latest->debit;
-        if ($latest->arus > 0) {
-            $latest->status = "Menyala";
+        if ($latest->arus != 0) {
+            $latest->status = 1;
         } else {
-            $latest->status = "Mati";
+            $latest->status = 0;
         }
 
         $latest->arus = $latest->daya / $latest->tegangan;
@@ -65,6 +80,17 @@ class dashboardController extends Controller
             $latest->active_message_subtitle = "Tekan tombol untuk mematikan pompa";
         }
 
+        $latest->suhu = $latest_env->suhu;
+        $latest->suhu_harian = $latest_env->suhu_harian;
+        $latest->intensitas_cahaya = $latest_env->intensitas_cahaya;
+        $latest->iradiasi = ($latest->intensitas_cahaya / 116) ?? 0;
+
+        $expPower = $this->calculateExpPower($latest->intensitas_cahaya, $latest->suhu, $latest->daya);
+
+        $latest->pv_estimasi = $expPower[0];
+        $latest->pv_deviasi = $expPower[1];
+        $latest->pv_anomali = $expPower[2];
+
         return $latest;
     }
 
@@ -107,7 +133,11 @@ class dashboardController extends Controller
         $latestDate = Submersible::max("created_at");
         $latestDate = date('Y-m-d', strtotime($latestDate));
 
-        $chart = Submersible::select($data_select[$data])->whereDate("created_at", $latestDate)->get();
+        if ($data == "environment") {
+            $chart = Environment::select($data_select[$data])->whereDate("created_at", $latestDate)->get();
+        } else {
+            $chart = Submersible::select($data_select[$data])->whereDate("created_at", $latestDate)->get();
+        }
 
         return response()->json([
             "data" => $chart
@@ -165,7 +195,7 @@ class dashboardController extends Controller
 
     public function pumpActive($scale = "living-lab")
     {
-        if ($scale = "living-lab") {
+        if ($scale == "living-lab") {
             $id = 1;
         } else {
             $id = 2;
